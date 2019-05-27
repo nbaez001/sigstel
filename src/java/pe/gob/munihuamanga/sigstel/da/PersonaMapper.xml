@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Persona">
+    <select id="Obtener" parameterType="java.lang.Integer" resultType="pe.gob.munihuamanga.sigstel.be.Persona">
+        select * from persona where id=#{id}
+    </select>
+    <insert id="Insertar" parameterType="pe.gob.munihuamanga.sigstel.be.Persona">
+        insert into persona(nombre, apellidoPat, apellidoMat, dni, telefono, email) values(#{nombre},#{apellidoPat},#{apellidoMat},#{dni},#{telefono},#{email})
+    </insert>
+    <select id="ObtenerPorDni" parameterType="java.lang.String" resultType="pe.gob.munihuamanga.sigstel.be.Persona">
+        select * from persona where dni=#{dni}
+    </select>
+    <update id="Modificar" parameterType="pe.gob.munihuamanga.sigstel.be.Persona">
+        update persona set nombre = #{nombre}, apellidoPat = #{apellidoPat}, apellidoMat = #{apellidoMat}, dni = #{dni}, telefono = #{telefono}, email = #{email} where id = #{id}
+    </update>
+    <!--<delete id="Eliminar" parameterType="java.lang.Integer">
+        delete from persona where id = #{id}
+    </delete>-->
+</mapper>

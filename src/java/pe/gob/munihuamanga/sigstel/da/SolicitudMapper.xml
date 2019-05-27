@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Solicitud">
+    <!--<select id="Listar" parameterType="java.lang.Integer" resultType="pe.gob.munihuamanga.sigstel.be.Solicitud">
+        select * from solicitud where idEstadoSolicitud=#{idEstado} order by id asc
+    </select>-->
+    <select id="Atendidas" resultType="pe.gob.munihuamanga.sigstel.be.SolicitudAtendida">
+        select s.id as id, s.detalle as detalle, s.fecha as fecha, t.denominacion as tipoSolicitud, d.denominacion as dependencia, d.sigla as sigla, e.denominacion as estadoSolicitud, u.cargo as cargo from solicitud s
+        inner join usuario u on s.idUsuario = u.id 
+        inner join dependencia d on u.idDependencia = d.id
+        inner join estadoSolicitud e on s.idEstadoSolicitud=e.id
+        inner join tiposolicitud t on s.idTiposolicitud=t.id
+        where idEstadoSolicitud = 2
+    </select>
+    <select id="Pendientes" resultType="pe.gob.munihuamanga.sigstel.be.SolicitudPendiente">
+        select s.id as id, s.detalle as detalle, s.fecha as fecha, t.denominacion as tipoSolicitud, d.denominacion as dependencia, d.sigla as sigla, e.denominacion as estadoSolicitud, u.cargo as cargo, d.ubicacion as ubicacion from solicitud s
+        inner join usuario u on s.idUsuario = u.id 
+        inner join dependencia d on u.idDependencia = d.id
+        inner join estadoSolicitud e on s.idEstadoSolicitud=e.id
+        inner join tiposolicitud t on s.idTiposolicitud=t.id
+        where idEstadoSolicitud = 1
+        order by d.prioridad desc,s.fecha asc
+    </select>
+    <update id="Modificar" parameterType="pe.gob.munihuamanga.sigstel.be.Solicitud">
+        <choose>
+            <when test="idEstadoSolicitud != 3">
+                update solicitud set opinionTecnica = #{opinionTecnica}, 
+                fechaInicioAtencion = now(), 
+                idEstadoSolicitud = #{idEstadoSolicitud}, 
+                idTecnico = #{idTecnico}  
+                where id = #{id}
+            </when>
+            <otherwise>
+                update solicitud set opinionTecnica = #{opinionTecnica}, 
+                fechaInicioAtencion = now(), 
+                fechaFinAtencion = now(),
+                idEstadoSolicitud = #{idEstadoSolicitud}, 
+                idTecnico = #{idTecnico}  
+                where id = #{id}
+            </otherwise>
+        </choose>
+    </update>
+    <update id="Actualizar" parameterType="pe.gob.munihuamanga.sigstel.be.Solicitud">
+        update solicitud set 
+        fechaFinAtencion = now(), 
+        idEstadoSolicitud = #{idEstadoSolicitud} 
+        where id = #{id}
+    </update>
+    <select id="ReportarInspeccion" parameterType="java.util.Map" resultType="pe.gob.munihuamanga.sigstel.be.DetalleInspeccion">
+        <choose>
+            <when test="idTecnico != 0">
+                select s.fecha as fecha, 
+                TRIM(p.nombre)||' '||TRIM(p.apellidoPat) as nombre, 
+                d.sigla as sigla, 
+                t.denominacion as tipo, 
+                s.detalle as detalle, 
+                s.fechaInicioAtencion as horaInicio, 
+                s.fechaFinAtencion as horaFin,
+                s.opinionTecnica as opinion,
+                TRIM(p2.nombre)||' '||TRIM(p2.apellidoPat) as tecnico,
+                e.denominacion as estado
+                from solicitud s
+                inner join usuario u on u.id = s.idUsuario
+                inner join persona p on p.id = u.idPersona
+                inner join dependencia d on d.id = u.idDependencia
+                inner join tipoSolicitud t on t.id = s.idTipoSolicitud
+                inner join estadoSolicitud e on e.id = s.idEstadoSolicitud
+                inner join usuario u2 on u2.id = s.idTecnico
+                inner join persona p2 on p2.id = u2.idPersona
+                where s.fechaInicioAtencion between #{fechaInicio} and #{fechaFin}
+                and (s.idEstadoSolicitud = 4 or s.idEstadoSolicitud = 5 or s.idEstadoSolicitud = 3)
+                and s.idTecnico = #{idTecnico}
+            </when>
+            <otherwise>
+                select s.fecha as fecha, 
+                TRIM(p.nombre)||' '||TRIM(p.apellidoPat) as nombre, 
+                d.sigla as sigla, 
+                t.denominacion as tipo, 
+                s.detalle as detalle, 
+                s.fechaInicioAtencion as horaInicio, 
+                s.fechaFinAtencion as horaFin,
+                s.opinionTecnica as opinion,
+                TRIM(p2.nombre)||' '||TRIM(p2.apellidoPat) as tecnico,
+                e.denominacion as estado
+                from solicitud s
+                inner join usuario u on u.id = s.idUsuario
+                inner join persona p on p.id = u.idPersona
+                inner join dependencia d on d.id = u.idDependencia
+                inner join tipoSolicitud t on t.id = s.idTipoSolicitud
+                inner join estadoSolicitud e on e.id = s.idEstadoSolicitud
+                inner join usuario u2 on u2.id = s.idTecnico
+                inner join persona p2 on p2.id = u2.idPersona
+                where s.fechaInicioAtencion between #{fechaInicio} and #{fechaFin}
+                and (s.idEstadoSolicitud = 4 or s.idEstadoSolicitud = 5 or s.idEstadoSolicitud = 3)
+            </otherwise>
+        </choose>
+    </select>
+    <!--<select id="ReporteEstado" parameterType="pe.gob.munihuamanga.sigstel.be.Busqueda" resultType="pe.gob.munihuamanga.sisatlin.be.SolicitudPendiente">
+        <choose>
+            <when test="idEstado != 0">
+                select s.id as id, s.detalle as detalle, s.fecha as fecha, t.nombre as tipo, d.sigla as sigla, e.nombre as estado, u.cargo as cargo from solicitud s
+                inner join usuario u on s.idUsuario = u.id 
+                inner join dependencia d on u.idDependencia = d.id
+                inner join estado e on s.idEstado=e.id
+                inner join tipo t on s.idTipo=t.id
+                where s.fecha between #{fechaInicio} and #{fechaFin}
+                and e.id=#{idEstado}
+                order by t.id
+            </when>
+            <otherwise>
+                select s.id as id, s.detalle as detalle, s.fecha as fecha, t.nombre as tipo, d.sigla as sigla, e.nombre as estado, u.cargo as cargo from solicitud s
+                inner join usuario u on s.idUsuario = u.id 
+                inner join dependencia d on u.idDependencia = d.id
+                inner join estado e on s.idEstado=e.id
+                inner join tipo t on s.idTipo=t.id
+                where s.fecha between #{fechaInicio} and #{fechaFin}
+                order by s.fecha
+            </otherwise>
+        </choose>
+    </select>
+    <select id="ReporteTipo" parameterType="pe.gob.munihuamanga.sigstel.be.Busqueda" resultType="pe.gob.munihuamanga.sigstel.be.SolicitudPendiente">
+        <choose>
+            <when test="idTipo != 0">
+                select s.id as id, s.detalle as detalle, s.fecha as fecha, t.nombre as tipo, d.sigla as sigla, e.nombre as estado, u.cargo as cargo from solicitud s
+                inner join usuario u on s.idUsuario = u.id 
+                inner join dependencia d on u.idDependencia = d.id
+                inner join estado e on s.idEstado=e.id
+                inner join tipo t on s.idTipo=t.id
+                where s.fecha between #{fechaInicio} and #{fechaFin}
+                and t.id=#{idTipo}
+                order by s.fecha
+            </when>
+            <otherwise>
+                select s.id as id, s.detalle as detalle, s.fecha as fecha, t.nombre as tipo, d.sigla as sigla, e.nombre as estado, u.cargo as cargo from solicitud s
+                inner join usuario u on s.idUsuario = u.id 
+                inner join dependencia d on u.idDependencia = d.id
+                inner join estado e on s.idEstado=e.id
+                inner join tipo t on s.idTipo=t.id
+                where s.fecha between #{fechaInicio} and #{fechaFin}
+                order by t.id
+            </otherwise>
+        </choose>
+    </select>
+    <select id="ReporteDependencia" parameterType="pe.gob.munihuamanga.sigstel.be.Busqueda" resultType="pe.gob.munihuamanga.sigstel.be.SolicitudPendiente">
+        select s.id as id, s.detalle as detalle, s.fecha as fecha, t.nombre as tipo, d.sigla as sigla, e.nombre as estado, u.cargo as cargo from solicitud s
+        inner join usuario u on s.idUsuario = u.id 
+        inner join dependencia d on u.idDependencia = d.id
+        inner join estado e on s.idEstado=e.id
+        inner join tipo t on s.idTipo=t.id
+        where s.fecha between #{fechaInicio} and #{fechaFin}
+        and d.id=#{idDependencia}
+        order by s.fecha
+    </select>-->
+    <select id="ReportarSolicitudes" parameterType="java.util.Map" resultType="pe.gob.munihuamanga.sigstel.be.SolicitudCompleta">
+        <choose>
+            <when test="idDependencia != 0">
+                select s.id as id,
+                s.detalle as detalle, 
+                s.opinionTecnica as opinionTecnica, 
+                s.opinionUsuario as opinionUsuario, 
+                s.fecha as fecha,
+                t.denominacion as tipoSolicitud,
+                e.denominacion as estadoSolicitud,
+                d.denominacion as dependencia,
+                d.sigla as sigla from solicitud s
+                inner join tipoSolicitud t on s.idTipoSolicitud = t.id
+                inner join estadoSolicitud e on s.idEstadoSolicitud = e.id
+                inner join usuario u on s.idUsuario = u.id
+                inner join dependencia d on u.idDependencia = d.id
+                where d.id = #{idDependencia} and s.fecha between #{fechaInicio} and #{fechaFin}
+                order by s.fecha
+            </when>
+            <otherwise>
+                select s.id as id,
+                s.detalle as detalle, 
+                s.opinionTecnica as opinionTecnica, 
+                s.opinionUsuario as opinionUsuario, 
+                s.fecha as fecha,
+                t.denominacion as tipoSolicitud,
+                e.denominacion as estadoSolicitud,
+                d.denominacion as dependencia,
+                d.sigla as sigla from solicitud s
+                inner join tipoSolicitud t on s.idTipoSolicitud = t.id
+                inner join estadoSolicitud e on s.idEstadoSolicitud = e.id
+                inner join usuario u on s.idUsuario = u.id
+                inner join dependencia d on u.idDependencia = d.id
+                where s.fecha between #{fechaInicio} and #{fechaFin}
+                order by s.fecha
+            </otherwise>
+        </choose>
+    </select>
+    <insert id="Insertar" parameterType="pe.gob.munihuamanga.sigstel.be.Solicitud">
+        insert into solicitud(detalle, fecha, idTipoSolicitud, idEstadoSolicitud, idUsuario) values(#{detalle}, #{fecha}, #{idTipoSolicitud}, #{idEstadoSolicitud}, #{idUsuario})
+    </insert>
+    <select id="ListarDeTodos" parameterType="java.lang.Integer" resultType="pe.gob.munihuamanga.sigstel.be.SolicitudPendiente">
+        select s.id as id, s.detalle as detalle, s.fecha as fecha, t.denominacion as tipoSolicitud, d.sigla as sigla, e.denominacion as estadoSolicitud, u.cargo as cargo, d.ubicacion as ubicacion, t.tiempoatencion as tiempoatencion, d.tiempotrs as tiempotrs from solicitud s
+        inner join usuario u on s.idUsuario = u.id 
+        inner join dependencia d on u.idDependencia = d.id
+        inner join estadoSolicitud e on s.idEstadoSolicitud=e.id
+        inner join tipoSolicitud t on s.idTipoSolicitud=t.id
+        order by s.fecha asc
+        limit #{cantidad}
+    </select>
+    <select id="ListarDeDependencia" parameterType="java.lang.Integer" resultType="pe.gob.munihuamanga.sigstel.be.SolicitudPendiente">
+        select s.id as id, s.detalle as detalle, s.fecha as fecha, t.denominacion as tipoSolicitud, d.sigla as sigla, e.denominacion as estadoSolicitud, u.cargo as cargo, d.ubicacion as ubicacion, t.tiempoatencion as tiempoatencion, d.tiempotrs as tiempotrs from solicitud s
+        inner join usuario u on s.idUsuario = u.id 
+        inner join dependencia d on u.idDependencia = d.id
+        inner join estadoSolicitud e on s.idEstadoSolicitud=e.id
+        inner join tipoSolicitud t on s.idTipoSolicitud=t.id
+        where d.id=#{idDependencia}
+        order by s.fecha desc
+        limit 20
+    </select>
+    <select id="ContarSolicitud" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select count(*) from solicitud s
+        where s.idEstadoSolicitud=#{idEstadoSolicitud}
+    </select>
+    <delete id="Eliminar" parameterType="java.lang.Integer">
+        delete from solicitud where id = #{id}
+    </delete>
+</mapper>

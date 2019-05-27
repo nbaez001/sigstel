@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Usuario">
+    <select id="Autenticar" parameterType="pe.gob.munihuamanga.sigstel.be.Usuario" resultType="pe.gob.munihuamanga.sigstel.be.Usuario">
+        select * from usuario where usuario=#{usuario} and contrasena=#{contrasena} and idRol=#{idRol} and estado=1
+    </select>
+    <select id="Obtener" parameterType="java.lang.Integer" resultType="pe.gob.munihuamanga.sigstel.be.Usuario">
+        select * from usuario where id=#{id}
+    </select>
+    <select id="ObtenerPorDni" parameterType="java.util.Map" resultType="pe.gob.munihuamanga.sigstel.be.Usuario">
+        select u.id, u.usuario, u.contrasena, u.cargo, u.estado, u.idRol, u.idDependencia, u.idPersona from usuario u 
+        inner join persona p on u.idPersona = p.id 
+        where p.dni=#{dni} and u.idRol=#{idRol}
+    </select>
+    <select id="ValidarId" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(*) from usuario where usuario.usuario = #{usuario}
+    </select>
+    <insert id="Insertar" parameterType="pe.gob.munihuamanga.sigstel.be.Usuario">
+        insert into usuario(usuario, contrasena, cargo, estado, idRol, idDependencia, idPersona) values(#{usuario},#{contrasena},#{cargo},#{estado},#{idRol},#{idDependencia},#{idPersona})
+    </insert>
+    <!--<select id="ObtenerPorNombre" parameterType="pe.gob.munihuamanga.sigstel.be.Persona" resultType="pe.gob.munihuamanga.sigstel.be.Usuario">
+        select ca.id,ca.usuario,ca.contrasena,ca.cargo,ca.estado,ca.idRol,ca.idDependencia,ca.idPersona from usuario ca inner join persona p on ca.idPersona = p.id where upper(p.nombre)=#{nombre} and upper(p.apellidoPat)=#{apellidoPat} and upper(p.apellidoMat)=#{apellidoMat}
+    </select>
+    <select id="ObtenerPorDni" parameterType="pe.gob.munihuamanga.sigstel.be.Persona" resultType="pe.gob.munihuamanga.sigstel.be.Usuario">
+        select ca.id,ca.usuario,ca.contrasena,ca.cargo,ca.estado,ca.idRol,ca.idDependencia,ca.idPersona from usuario ca inner join persona p on ca.idPersona = p.id where p.dni=#{dni}
+    </select>-->
+    <update id="Modificar" parameterType="pe.gob.munihuamanga.sigstel.be.Usuario">
+        update usuario set 
+        usuario = #{usuario}, 
+        contrasena = #{contrasena}, 
+        cargo = #{cargo}, 
+        estado = #{estado}, 
+        idRol = #{idRol}, 
+        idDependencia = #{idDependencia}, 
+        idPersona = #{idPersona} 
+        where id = #{id}
+    </update>
+    <!--<select id="Listar" resultType="pe.gob.munihuamanga.sigstel.be.CuentaAdministrador">
+        select * from CuentaAdministrador
+    </select>-->
+    <select id="ListarUsuarios" resultType="pe.gob.munihuamanga.sigstel.be.CuentaUsuario">
+        select u.id as id, 
+        p.nombre as nombre, 
+        p.apellidoPat ||' '|| p.apellidoMat as apellido, 
+        p.dni as dni, 
+        p.email as email, 
+        u.usuario as usuario, 
+        u.contrasena as contrasena, 
+        d.sigla as sigla,
+        d.denominacion as dependencia 
+        from usuario u
+        inner join persona p on u.idPersona = p.id 
+        inner join dependencia d on u.idDependencia = d.id
+        where u.estado=1
+    </select>
+    <select id="ListarTecnicos" resultType="pe.gob.munihuamanga.sigstel.be.CuentaUsuario">
+        select u.id as id, 
+        p.nombre as nombre, 
+        p.apellidoPat as apellido from usuario u
+        inner join persona p on u.idPersona = p.id 
+        inner join dependencia d on u.idDependencia = d.id
+        where u.idRol = 2
+    </select>
+    <!--<select id="ListarAdministradorCuenta" resultType="pe.gob.munihuamanga.sigstel.be.AdministradorCuenta">
+        select p.nombre, p.apellidoPat, p.apellidoMat, ca.usuario, ca.contrasena from cuentaadministrador ca
+        inner join persona p on ca.idPersona = p.id
+    </select>
+    <select id="ContarIds" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(*) from cuentaadministrador where cuentaadministrador.usuario = #{usuario}
+    </select>-->
+</mapper>
